@@ -61,11 +61,10 @@
 			},
 			build: function( meta, model){
 				var name,
-          // json format
-          // { form: "name", controls: [{tag: "name", attribute: "value", attribute: "value"}, ..., ]}
-
-          json,
-					obj;
+            // json format
+            // { form: "name", controls: [{tag: "name", attribute: "value", attribute: "value"}, ..., ]}
+            json,
+					  obj;
 
         // See if meta is a string
 				if($.type(meta) === 'string'){
@@ -79,73 +78,30 @@
 					json = meta.controls;
 				}
 
-			    // Hide the form to prevent
-			    // from showing of any not rendered
-			    // controls and/or elements
-			    $('#' + name).hide();
+		    // Hide the form container to prevent
+		    // from showing any not rendered
+		    // controls and/or elements
+		    $('#' + name).hide();
 
 				// Create form object and
 				// add it to the form collection
 				var form = new Form(name, json);
-				// The form does not have yet,
-				// setting a state will not
+
+        // The form does not have yet,
+				// setting up a state will not
 				// cause any rendering at this
 				// point.
 				form.setState(_state);
 				_forms[name] = form;
 
-				// Build form either from a json object
-				// or from html markup. In case of makup the json object is recreated and
-				// attached to the form object for the dinamic creation of the form.
-				if(json){
-					$.each(json, function(key, value){
-            var tag = this.name,
-							  cf;
-                // Check if we have registered tag name
-                if(_controls[tag]){
-                  // Retrieve ControlFactory Handler
-                  cf = _controls[tag];
-                  // Make an instance of the Control Builder
-                  cf = new cf();
+        // Loading
+        // all form controls
+        form.load();
 
-                  cf.build(control, _state, model);
-
-                  // Add Control to the Form object
-                  form.addControl(cf);
-                }
-
-					});
-
-				} else {
-
-          json = {};
-
-          // Iterate through all
-					// controls and build them
-					// based on registered  handlers
-					// and render state
-					$('#' + name).find('*').each(function(){
-						var control = $(this),
-							  tag = control.prop('tagName').toLowerCase(),
-							  cf;
-						// Check if we have registered tag name
-						if(_controls[tag]){
-							// Retrieve ControlFactory Handler
-							cf = _controls[tag];
-							// Make an instance of the Control Builder
-							cf = new cf();
-
-              cf.build(control, _state, model);
-
-              // Add Control to the Form object
-							form.addControl(cf);
-						}
-					});
-				}
-
-				// Show form
+				// Show form container
 				$('#' + name).fadeIn('slow');
-			},
+
+      },
 			// states: form, view, edit
 			// model: [optional]
 			setState: function(name, state, model){
@@ -252,7 +208,13 @@
 			});
 			return o;
 		},
-		// states: form, view, edit
+    init: function(){
+
+    },
+    load: function(){
+
+    },
+    // states: form, view, edit
 		// model: [optional]
 		setState: function(state, model){
 			$.each(this._controls, function(i){
