@@ -172,4 +172,16 @@
 
     };
 
+    uiManager.Control = function(){};
+    uiManager.Control.prototype = {
+        build: function(state, model){
+
+        };
+    };
+
+    uiManager.ContainerControl = function{};
+    uiManager.ContainerControl.prototype = {
+      controls_:
+    };
+
  }(jQuery);
