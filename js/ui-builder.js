@@ -1,5 +1,5 @@
 /* ========================================================================
- * control-builder.js v1.0.0
+ * ui-builder.js v1.0.0
  * ========================================================================
  * Copyright 2017 A. D.
  *
@@ -80,7 +80,17 @@
           return this.containers_[id];
         },
         getControl: function(name){
-          return this.controls_[name];
+          var c = this.controls_[name];
+          if(!c){
+            c = this.resolveTag(name);
+          }
+          return c;
+        },
+        resolveTag: function(name){
+
+        },
+        resolveJson: function(jqObj){
+
         },
         /**
          * loadContainer - description
@@ -157,31 +167,65 @@
 
         if(json){
           for (; tag = json[i++];) {
-            cntrl = uiManager.getControl(tag);
-            if(cntrl){
-              cntrl = new cntrl();
-              this.controls_.push(cntr);
-              htm += cntrl.build(state, model);
-            }
+            cntrl = uiManager.getControl(tag.c);
+            cntrl = new cntrl();
+            this.controls_.push(cntr);
+            htm += cntrl.build(null, tag, state, model);
           }
         } else {
-
+          $('#' + containerId).children().each(function(){
+  					  cntrl = $(this);
+              json = uiManager.resolveJson(cntrl);
+  						tag = cntrl.prop('tagName').toLowerCase();
+            	cntrl = uiManager.getControl(tag);
+  						cntrl = new cntrl(state, model);
+              htm += cntrl.build(json.id, json, state, model);
+        	});
         }
+
         this.container_.html(html);
       }
-
     };
 
     uiManager.Control = function(){};
     uiManager.Control.prototype = {
-        build: function(state, model){
+        init: function(id, json, state, model){
+          // am i a container
+          if(json.cs || id && $('#' + id).children().length > 0){
+            this.controls_ = [];
+          }
+        },
+        renderDom: function(){
 
+        },
+        build: function(id, json, state, model){
+          this.init(id, json, state, model);
+          var htm = '';
+          // Build controls
+
+          if(id){
+            
+          } else {
+
+          }
         };
     };
 
     uiManager.ContainerControl = function{};
     uiManager.ContainerControl.prototype = {
-      controls_:
+      init: function(id, json, model, state){
+        this.controls_ = [];
+        this.json_ = json;
+        this.model = model;
+        this.state = state;
+      },
+      renderDom: function(){
+
+      },
+      build: function(id, json, model, state){
+        this.init(containerId, json, model, state)
+
+      }
     };
 
  }(jQuery);
