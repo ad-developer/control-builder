@@ -28,7 +28,7 @@
         modules_: {},
         containers_: {},
         state_: {},
-        guid_: function() {
+        guid: function() {
           function s4() {
              return Math.floor((1 + Math.random()) * 0x10000)
                .toString(16)
@@ -107,36 +107,63 @@
             controlManager.Control.call(this);
           };
           controlManager.inherits(NewClass, controlManager.Control);
+              NewClass.prototype.renderDom = function(){
+                var ctrl = $('<' + name + '/>' ),
+                    el;
+                for (el in this.attr_) {
+                  if (this.attr_.hasOwnProperty(el)) {
+                    if(el === 'ad_inner_text'){
+                      ctrl.text(this.attr_[el]);
+                    } else {
+                      ctrl.attr(el, this.attr_[el]);
+                    }
+                  }
+                }
 
-          NewClass.prototype.renderDom = function(){
-            var ctrl = $('<' + name +/> );
-                el;
-            for (el in this.attr_) {
-              if (object.hasOwnProperty(el)) {
-                ctrl.attr(el, this.attr_[el]);
-              }
-            }
-            this.control_ = ctrl;
-          };
+                this.control_ = ctrl;
+                this.built_ = true;
+              };
           return NewClass;
         },
         resolveJson: function(jqObj){
           var obj = {},
               arrObj = [],
-              attr = jqObj.attributes,
+              attr = jqObj[0].attributes,
               tag = jqObj.prop('tagName').toLowerCase(),
+              i = 0,
               el;
 
           obj.c = tag;
 
           for (;el = attr[i++];) {
-            if(!$.isArray(el)){
-              obj[el.name] = el.value;
+            tag = el.value;
+            // Make sure not to add display: none; as a
+            // value of style attribute
+            if (el.value.indexOf('display: none;') >= 0){
+              tag = tag.replace('display: none;','');
             }
+              obj[el.name] = tag;
           }
+
+          // Check if element has an inner text
+          tag = jqObj
+          .clone()    //clone the element
+          .children() //select all the children
+          .remove()   //remove all the children
+          .end()
+          .text()
+          .trim();
+          if(tag.length){
+            obj.ad_inner_text  = tag;
+          }
+
 
           if(jqObj.children().length > 0){
             jqObj.children().each(function(){
+              // Id needs to be added if missing
+              if(!$(this).attr('id')){
+                $(this).attr('id', controlManager.guid());
+              }
               arrObj.push(
                 controlManager.resolveJson($(this))
               );
@@ -160,6 +187,7 @@
          */
         apply: function(meta, model, state){
           var id,
+              tag,
               controlObj,
 
               // json format
@@ -174,15 +202,18 @@
           // Otherwise it is a json meta data to build a container's
           // content.
           } else {
-            id = meta.conId;
-  					json = meta.controls;
+            id = meta.id;
+  					json = meta;
           }
 
           // Hide container untill it's rendered in full.
           $('#' + id).hide();
+          tag = $('#' + id).prop('tagName').toLowerCase();
 
-          // Make instance of Control object
-          controlObj = new controlManager.Control();
+          // Make instance of the corresponding
+          // container control
+          controlObj = controlManager.getControl(tag);
+          controlObj = new controlObj();
 
           // Add newly created instance to the container
           // collection.
@@ -190,6 +221,8 @@
 
           // Build container control
           content = controlObj.build(id, json, model, state);
+
+          content.show();
 
           // Finally inject the content
           // and show the container.
@@ -211,7 +244,7 @@
           $this.attr_ = {},
           $this.built_ = false;
           // Am I a container
-          if(json.cs || id && $('#' + id).children().length > 0){
+          if(json && json.cs || id && $('#' + id).children().length > 0){
             $this.controls_ = [];
           }
           // Set attributes
@@ -220,18 +253,19 @@
           } else {
             meta = id;
           }
-          $this.setAttr_(meta);
 
           // Set json
           if(!json){
             json = controlManager.resolveJson($('#' + id));
           }
           $this.json_ = json;
+
+          $this.setAttr_(meta);
         },
         getJson: function(){
           return this.json_;
         },
-        set: function(obj){}
+        set: function(obj){},
         get: function(){},
         show: function() {
           this.control_.show();
@@ -247,16 +281,30 @@
               i = 0,
               el;
           if($.type(meta) === 'string'){
-            attr = $('#' + meta).attributes,
+            attr = $('#' + meta)[0].attributes;
             for (;el = attr[i++];) {
               if(!$.isArray(el)){
                 this.attr_[el.name] = el.value;
               }
             }
-          } esle {
+            // Assumption: we add custom attribute ad_inner_text
+            // to hold inner text content ( if any ) of the given
+            // control.
+            attr = $('#' + meta)
+            .clone()    //clone the element
+            .children() //select all the children
+            .remove()   //remove all the children
+            .end()
+            .text()
+            .trim();
+            if(attr.length){
+              this.attr_.ad_inner_text  = attr;
+            }
+
+          } else {
             for (el in meta) {
               if (meta.hasOwnProperty(el)) {
-                if(!$.isArray(el)){
+                if(el !== 'cs' && el !== 'c'){
                   this.attr_[el] = meta[el];
                 }
               }
@@ -265,7 +313,7 @@
         },
         getId: function(){
           return this.id;
-        }
+        },
         setState: function(state, model){
           this.state_ = state;
           this.model_ = model;
@@ -275,7 +323,7 @@
           if(this.controls_){
             return this.controls_[id];
           }
-        }
+        },
         getControls: function(){
           return this.controls_;
         },
@@ -286,36 +334,46 @@
         },
         renderDom: function(){},
         build: function(id, json, state, model){
-          this.init(id, json, state, model);
-          var i = 0,
+          var $this = this,
+              i = 0,
               cntrl,
               tag,
               html = '';
+          if(id instanceof jQuery){
+            cntrl = controlManager.guid();
+            id.attr('id', cntrl);
+            id = cntrl;
+            cntrl = undefined;
+          }
+          $this.init(id, json, state, model);
 
           // Render itself
-          this.renderDom();
+          $this.renderDom();
 
           // If a container then renders all children
           // and add them to itself
-          if(this.controls_){
+          if($this.controls_){
             if(json){
-              for (; tag = json[i++];) {
+              for (; tag = json.cs[i++];) {
                 cntrl = controlManager.getControl(tag.c);
                 cntrl = new cntrl();
-                this.controls_.push(cntr);
-                this.control_.append(
+                $this.controls_.push(cntrl);
+                $this.control_.append(
                   cntrl.build(null, tag, state, model)
                 );
               }
             } else {
               $('#' + id).children().each(function(){
                   cntrl = $(this);
-                  json = controlManager.resolveJson(cntrl);
                   tag = cntrl.prop('tagName').toLowerCase();
-                  cntrl = controlManager.getControl(tag);
-                  cntrl = new cntrl();
-                  this.control_.append(
-                    cntrl.build(json.id, json, state, model)
+                  tag = controlManager.getControl(tag);
+                  tag = new tag();
+                  id = cntrl.attr('id');
+                  if(!id){
+                    id  = cntrl;
+                  }
+                  $this.control_.append(
+                    tag.build(cntrl, null, state, model)
                   );
               });
             }
