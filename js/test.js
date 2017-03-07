@@ -33,7 +33,9 @@ var json2 = {"c":"div","id":"con","class":"ad-container","style":"background: re
         }]
       }]
     };
-cm.apply(json2);
+
+var json3 = {"c":"div","class":"kuku","id":"con","style":"","cs":[{"c":"ad-text","id":"firstTextBox","label":"This is a cool text box","validate":""}]};
+cm.apply(json3);
 //cm.apply('con');
 
 
