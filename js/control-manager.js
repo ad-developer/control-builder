@@ -1,4 +1,5 @@
 /* ========================================================================
+ * adpresso-ui framework
  * control-manager.js v1.0.0
  * ========================================================================
  * Copyright 2017 A. D.
@@ -240,6 +241,7 @@
               meta;
           $this.id_ = id;
           $this.state_ = state || 'form';
+          $this.model_ = model;
           $this.control_ = undefined,
           $this.attr_ = {},
           $this.built_ = false;
