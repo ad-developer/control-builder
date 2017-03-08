@@ -93,6 +93,9 @@
         getModule: function(name){
           return this.modules_[name];
         },
+        addContainer: function(id, obj){
+          this.containers_[id] = obj;
+        },
         getContainer: function(id){
           return this.containers_[id];
         },
@@ -239,21 +242,26 @@
         init: function(id, json, state, model){
           var $this = this,
               meta;
-          $this.id_ = id;
           $this.state_ = state || 'form';
           $this.model_ = model;
           $this.control_ = undefined,
           $this.attr_ = {},
           $this.built_ = false;
-          // Am I a container
-          if(json && json.cs || id && $('#' + id).children().length > 0){
-            $this.controls_ = [];
-          }
+
           // Set attributes
           if(json){
             meta = json;
+            id = json.id;
           } else {
             meta = id;
+          }
+          $this.id_ = id;
+
+          // Am I a container...
+          if(json && json.cs || id && $('#' + id).children().length > 0){
+            $this.controls_ = [];
+            // ... and I want to be added to container collection
+            cm.addContainer(id, $this);
           }
 
           // Set json
@@ -268,7 +276,29 @@
           return this.json_;
         },
         set: function(obj){},
-        get: function(){},
+        get: function(id){
+          // This is implementation for the case of a container.
+          // For a specific control it MUST be emplemented to return
+          // it's own data
+          if(this.controls_){
+            cm.Control.data_ = cm.Control.data_ || {};
+            if(!id){
+              id = this.id_;
+              cm.Control.data_[id] = {};
+            }
+
+            for (var i = 0, el; el = this.controls_[i++];) {
+                if(el.controls_){
+                  el.get(id);
+                } else {
+                  if(el.get() !== undefined){
+                    cm.Control.data_[id][el.id_] = el.get();
+                  }
+                }
+            }
+            return cm.Control.data_[id];
+          }
+        },
         show: function() {
           this.control_.show();
         },
@@ -314,7 +344,7 @@
           }
         },
         getId: function(){
-          return this.id;
+          return this.id_;
         },
         setState: function(state, model){
           this.state_ = state;
@@ -370,12 +400,13 @@
                   tag = cntrl.prop('tagName').toLowerCase();
                   tag = controlManager.getControl(tag);
                   tag = new tag();
+                  $this.controls_.push(tag);
                   id = cntrl.attr('id');
                   if(!id){
                     id  = cntrl;
                   }
                   $this.control_.append(
-                    tag.build(cntrl, null, state, model)
+                    tag.build(id, null, state, model)
                   );
               });
             }
