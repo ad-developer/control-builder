@@ -35,8 +35,8 @@ var json2 = {"c":"div","id":"con","class":"ad-container","style":"background: re
     };
 
 var json3 = {"c":"div","class":"kuku","id":"con","style":"","cs":[{"c":"ad-text","id":"firstTextBox","label":"This is a cool text box","validate":""}]};
-cm.apply(json3);
-//cm.apply('con');
+//cm.apply(json3);
+cm.apply('con');
 
 
 $('#getJson').click(function(){
@@ -44,5 +44,18 @@ $('#getJson').click(function(){
   var json = c.getJson();
 
   console.log(json);
+
+});
+
+$('#getData').click(function(){
+  var c = cm.getContainer('con');
+  var data = c.get();
+
+  console.log(data);
+
+  c = cm.getContainer('secondLevel');
+  data = c.get();
+
+  console.log(data);
 
 });
