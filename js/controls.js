@@ -33,42 +33,42 @@
  var groupControlPrototype = cm.GroupControl.prototype;
 
  groupControlPrototype.renderDom = function(){
-   this.renderCon();
-   this.renderLabel();
-   this.renderControlCon();
+   this.renderCon_();
+   this.renderLabel_();
+   this.renderControlCon_();
 
    if(this.state_ === 'view'){
-     this.renderStatic();
+     this.renderStatic_();
    } else {
-     this.renderControl();
+     this.renderControl_();
    }
    this.built_ = true;
-   this.control_ = this.assemble();
+   this.control_ = this.assemble_();
  };
 
- groupControlPrototype.renderCon = function(){
+ groupControlPrototype.renderCon_ = function(){
    this.con_ = cm.div('form-group');
  };
 
- groupControlPrototype.renderLabel = function(){
+ groupControlPrototype.renderLabel_ = function(){
    this.label_ = $('<label/>').addClass('control-label');
  };
 
- groupControlPrototype.renderControlCon = function(){
+ groupControlPrototype.renderControlCon_ = function(){
    this.contrCon_ = cm.div();
  };
 
- groupControlPrototype.assemble = function(){
+ groupControlPrototype.assemble_ = function(){
    var $this = this,
-       cntr;
+       ctrl;
    $this.con_.append(this.label_);
 
    if($this.state_ === 'view'){
-     cntr = $this.static_
+     ctrl = $this.static_
    } else {
-     cntr = $this.control_;
+     ctrl = $this.ctrl_;
    }
-   $this.contrCon_.append(cntr);
+   $this.contrCon_.append(ctrl);
 
    if($this.attr_['ad-hide'] || $this.attr_['ad-hide'] === ''){
      $this.con_.hide();
@@ -90,35 +90,35 @@
 
  var textControlPrototype = cm.TextControl.prototype;
 
- textControlPrototype.renderControl = function(){
+ textControlPrototype.renderControl_ = function(){
    var val = '';
    if(this.state_ === 'edit' && this.model_ && this.model_[this.id]){
      val = this.model_[this.id];
    }
-   this.control_ = $('<input/>')
+   this.ctrl_ = $('<input/>')
      .attr('type','text')
      .addClass('form-control input-sm')
      .val(val);
  };
 
- textControlPrototype.renderStatic = function(){
+ textControlPrototype.renderStatic_ = function(){
    var val = '';
    if(this.model_ && this.model_[this.id]){
      val = this.mode_l[this.id];
    }
-   this.static = $('<p/>')
+   this.static_ = $('<p/>')
      .text(val)
      .addClass('form-control-static');
  };
 
- textControlPrototype.renderPartial = function(){
+ textControlPrototype.renderPartial_ = function(){
    var $this = this,
-       id =  $this.id,
-       val = $this.getLRVal(),
+       id =  $this.id_,
+       val = $this.getLRVal_(),
        stae = $this.state_;
 
    if(state === 'view'){
-     $this.renderStatic();
+     $this.renderStatic_();
      $this.static_.attr('id', id);
      $this.static_.text(val);
      $this.lastRndr_.replaceWith($this.static_);
@@ -127,14 +127,14 @@
    }
 
    if(state === 'form' || state === 'edit'){
-     $this.renderControl();
+     $this.renderControl_();
 
      if($this.attr_['validate'] || $this.attr_['validate'] === ''){
        $this.label_.text('*' + this.attr_['label']);
-       $this.control_.attr('data-val','true').attr('data-val-required', $this.attr_['label'] + 'is required.');
+       $this.ctrl_.attr('data-val','true').attr('data-val-required', $this.attr_['label'] + 'is required.');
      }
 
-     $this.control_.attr('id', id);
+     $this.ctrl_.attr('id', id);
 
      if(state === 'edit'){
        // Check model
@@ -147,17 +147,17 @@
        if($this.model_){
          val = $this.model_[this.id];
        }
-       $this.control_.val(val);
+       $this.ctrl_.val(val);
        }
 
-     $this.lastRndr_.replaceWith($this.control_);
+     $this.lastRndr_.replaceWith($this.ctrl_);
 
-     $this.lastRndr_ = $this.control_;
+     $this.lastRndr_ = $this.ctrl_;
    }
  };
 
  // Retrieve Last rendered control value
- textControlPrototype.getLRVal = function(){
+ textControlPrototype.getLRVal_ = function(){
    if(this.lastRndr_.prop("tagName") === 'P'){
      return this.lastRndr_.text();
    } else {
@@ -169,12 +169,12 @@
    var $this = this,
        attr = $this.attr_,
        state = $this.state_,
-       id = $this.id,
+       id = $this.id_,
        width = 6,
        widthAdj;
 
    if($this.built_){
-     this.renderPartial();
+     this.renderPartial_();
      return;
    }
 
@@ -201,15 +201,15 @@
    $this.contrCon_.addClass('col-md-' + width);
 
 
-   // Redering different ways
+   // Rendering different ways
    if(state === 'form' || state === 'edit'){
      if(attr['validate'] || attr['validate'] === ''){
        $this.label_.text('*' + attr['label']);
-       $this.control_.attr('data-val','true').attr('data-val-required', attr['label'] + 'is required.');
+       $this.ctrl_.attr('data-val','true').attr('data-val-required', attr['label'] + 'is required.');
      } else {
        $this.label_.text(attr['label']);
      }
-     $this.control_.attr('id', id).attr('name', id);
+     $this.ctrl_.attr('id', id).attr('name', id);
      $this.lastRndr_ = $this.control_;
    }
 
@@ -223,12 +223,14 @@
  };
 
  textControlPrototype.get = function(){
-   return this.control_.val();
+   return this.ctrl_.val();
  };
 
  textControlPrototype.set = function(value){
-   this.control_.val(value);
+   this.ctrl_.val(value);
  };
+
+
 
  /**
   * Register controls.
